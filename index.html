@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Философский канон — 120 главных книг</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,500;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <div class="header-title">
+        <span class="header-label">Философский канон</span>
+        <h1>120 главных книг<br>по философии</h1>
+        <p class="header-sub">Хронологический путь от Платона до наших дней · один час в день</p>
+      </div>
+      <div class="header-stats" id="header-stats">
+        <div class="stat-pill">
+          <span class="stat-num" id="s-done">0</span>
+          <span class="stat-label">прочитано</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill">
+          <span class="stat-num" id="s-total">120</span>
+          <span class="stat-label">книг всего</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill">
+          <span class="stat-num" id="s-hours">0</span>
+          <span class="stat-label">часов</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-pill">
+          <span class="stat-num" id="s-left">—</span>
+          <span class="stat-label">осталось ч.</span>
+        </div>
+      </div>
+    </div>
+    <div class="progress-track">
+      <div class="progress-fill" id="prog"></div>
+    </div>
+  </header>
+
+  <main class="main">
+    <div class="controls">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+          <circle cx="8.5" cy="8.5" r="5.5" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M13 13l3.5 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <input id="search-inp" class="search-input" type="text" placeholder="Поиск по автору или названию…" oninput="render()" />
+      </div>
+      <div class="era-filters" id="era-filters">
+        <button class="era-btn active" data-era="all" onclick="setEra('all',this)">Все эпохи</button>
+        <button class="era-btn" data-era="Античность" onclick="setEra('Античность',this)">Античность</button>
+        <button class="era-btn" data-era="Отцы церкви" onclick="setEra('Отцы церкви',this)">Отцы церкви</button>
+        <button class="era-btn" data-era="Средневековье" onclick="setEra('Средневековье',this)">Средневековье</button>
+        <button class="era-btn" data-era="Возрождение" onclick="setEra('Возрождение',this)">Возрождение</button>
+        <button class="era-btn" data-era="Новое время" onclick="setEra('Новое время',this)">Новое время</button>
+        <button class="era-btn" data-era="XIX век" onclick="setEra('XIX век',this)">XIX век</button>
+        <button class="era-btn" data-era="XX–XXI век" onclick="setEra('XX–XXI век',this)">XX–XXI</button>
+      </div>
+    </div>
+
+    <div id="book-list" class="book-list"></div>
+  </main>
+
+  <footer class="site-footer">
+    <p>Прогресс сохраняется в браузере · <button class="reset-btn" onclick="resetProgress()">Сбросить прогресс</button></p>
+  </footer>
+
+  <script src="books.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
