@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Философский канон — 120 главных книг</title>
+  <title>Философский канон — 133 главные книги</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,7 +15,7 @@
     <div class="header-inner">
       <div class="header-title">
         <span class="header-label">Философский канон</span>
-        <h1>120 главных книг<br>по философии</h1>
+        <h1>133 главные книги<br>по философии</h1>
         <p class="header-sub">Хронологический путь от Платона до наших дней · один час в день</p>
       </div>
       <div class="header-stats" id="header-stats">
@@ -25,7 +25,7 @@
         </div>
         <div class="stat-divider"></div>
         <div class="stat-pill">
-          <span class="stat-num" id="s-total">120</span>
+          <span class="stat-num" id="s-total">133</span>
           <span class="stat-label">книг всего</span>
         </div>
         <div class="stat-divider"></div>
@@ -68,6 +68,36 @@
 
     <div id="book-list" class="book-list"></div>
   </main>
+
+  <!-- Review modal -->
+  <div id="review-overlay" class="review-overlay" hidden>
+    <div class="review-modal" role="dialog" aria-modal="true" aria-labelledby="review-modal-title">
+      <button class="review-close" id="review-close-btn" aria-label="Закрыть">
+        <svg viewBox="0 0 16 16" fill="none"><path d="M3 3l10 10M13 3L3 13" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      </button>
+
+      <div class="review-head">
+        <span class="review-num" id="review-num"></span>
+        <h2 class="review-title" id="review-modal-title"></h2>
+        <p class="review-author" id="review-author"></p>
+      </div>
+
+      <textarea
+        id="review-textarea"
+        class="review-textarea"
+        placeholder="Запиши свои мысли об этой книге: главная идея, что зацепило, с чем не согласен, кому посоветуешь…"
+        rows="8"
+      ></textarea>
+
+      <div class="review-foot">
+        <span class="review-status" id="review-status"></span>
+        <div class="review-actions">
+          <button class="review-btn review-btn-secondary" id="review-cancel-btn">Закрыть</button>
+          <button class="review-btn review-btn-primary" id="review-save-btn">Сохранить</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <p>Прогресс сохраняется в браузере · <button class="reset-btn" onclick="resetProgress()">Сбросить прогресс</button></p>
