@@ -76,6 +76,56 @@ function updateCard(card, n) {
     : '';
 }
 
+function makeCard(b) {
+  const isDone = done.has(b.n);
+  const hasReview = !!getReview(b.n);
+  const card = document.createElement('div');
+  card.className = 'book-card' + (isDone ? ' done' : '');
+  card.dataset.n = b.n;
+  card.setAttribute('role', 'button');
+  card.setAttribute('tabindex', '0');
+  card.setAttribute('aria-label', `${b.t} — ${b.a}. ${isDone ? 'Прочитано' : 'Не прочитано'}`);
+
+  card.innerHTML = `
+    <div class="card-top">
+      <span class="book-num">${b.n}</span>
+      ${b.isNew ? '<span class="new-tag">новое</span>' : ''}
+      <button class="check" aria-label="Отметить прочитанным">
+        ${isDone ? `<svg viewBox="0 0 14 14" fill="none"><polyline points="2,7 6,11 12,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
+      </button>
+    </div>
+    <div class="card-body">
+      <h3 class="book-title">${b.t}</h3>
+      <p class="book-author">${b.a}</p>
+    </div>
+    <div class="card-foot">
+      <span class="book-year">${b.y}</span>
+      <span class="book-hours">${b.h} ч</span>
+    </div>
+    <button class="review-trigger${hasReview ? ' has-review' : ''}" type="button" data-review-n="${b.n}">
+      <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+        <path d="M3.5 2.5h7.6c.5 0 1 .2 1.3.6l1.6 1.6c.4.4.6.8.6 1.3v7.5c0 .55-.45 1-1 1h-10c-.55 0-1-.45-1-1v-10c0-.55.45-1 1-1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+        <path d="M5.5 6h5M5.5 8.5h5M5.5 11h3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      <span>${hasReview ? 'Моя рецензия' : 'Написать рецензию'}</span>
+    </button>
+  `;
+
+  card.addEventListener('click', (e) => {
+    if (e.target.closest('.review-trigger')) return; // handled separately
+    toggle(b.n);
+  });
+  card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(b.n); } });
+
+  const reviewBtn = card.querySelector('.review-trigger');
+  reviewBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    openReviewModal(b);
+  });
+
+  return card;
+}
+
 // ── Render ────────────────────────────────────────────────────────
 function render() {
   const books = filteredBooks();
@@ -107,48 +157,174 @@ function render() {
     `;
     section.appendChild(header);
 
-    const grid = document.createElement('div');
-    grid.className = 'books-grid';
+    // Build sub-groups: consecutive runs sharing the same `group` field get their own
+    // labeled cluster (e.g. "Платон · диалоги"); ungrouped books fall into one shared grid.
+    let i = 0;
+    while (i < group.length) {
+      const b0 = group[i];
 
-    group.forEach(b => {
-      const isDone = done.has(b.n);
-      const card = document.createElement('div');
-      card.className = 'book-card' + (isDone ? ' done' : '');
-      card.dataset.n = b.n;
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-      card.setAttribute('aria-label', `${b.t} — ${b.a}. ${isDone ? 'Прочитано' : 'Не прочитано'}`);
+      if (b0.group) {
+        const runGroupName = b0.group;
+        const run = [];
+        while (i < group.length && group[i].group === runGroupName) {
+          run.push(group[i]);
+          i++;
+        }
 
-      card.innerHTML = `
-        <div class="card-top">
-          <span class="book-num">${b.n}</span>
-          ${b.isNew ? '<span class="new-tag">новое</span>' : ''}
-          <button class="check" aria-label="Отметить прочитанным">
-            ${isDone ? `<svg viewBox="0 0 14 14" fill="none"><polyline points="2,7 6,11 12,3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>` : ''}
-          </button>
-        </div>
-        <div class="card-body">
-          <h3 class="book-title">${b.t}</h3>
-          <p class="book-author">${b.a}</p>
-        </div>
-        <div class="card-foot">
-          <span class="book-year">${b.y}</span>
-          <span class="book-hours">${b.h} ч</span>
-        </div>
-      `;
+        const cluster = document.createElement('div');
+        cluster.className = 'subgroup-cluster';
 
-      card.addEventListener('click', () => toggle(b.n));
-      card.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(b.n); } });
+        const clusterHead = document.createElement('div');
+        clusterHead.className = 'subgroup-header';
+        clusterHead.innerHTML = `<span class="subgroup-name">${runGroupName}</span><span class="subgroup-count">${run.length} текстов · читать в этом порядке</span>`;
+        cluster.appendChild(clusterHead);
 
-      grid.appendChild(card);
-    });
+        const subGrid = document.createElement('div');
+        subGrid.className = 'books-grid subgroup-grid';
 
-    section.appendChild(grid);
+        let lastNote = null;
+        run.forEach(b => {
+          if (b.groupNote && b.groupNote !== lastNote) {
+            const noteEl = document.createElement('div');
+            noteEl.className = 'subgroup-note';
+            noteEl.textContent = b.groupNote;
+            subGrid.appendChild(noteEl);
+            lastNote = b.groupNote;
+          }
+          subGrid.appendChild(makeCard(b));
+        });
+
+        cluster.appendChild(subGrid);
+        section.appendChild(cluster);
+      } else {
+        const run = [];
+        while (i < group.length && !group[i].group) {
+          run.push(group[i]);
+          i++;
+        }
+        const grid = document.createElement('div');
+        grid.className = 'books-grid';
+        run.forEach(b => grid.appendChild(makeCard(b)));
+        section.appendChild(grid);
+      }
+    }
+
     list.appendChild(section);
+  });
+}
+
+// ── Reviews ──────────────────────────────────────────────────────
+const REVIEWS_KEY = 'philos-reader-reviews-v1';
+let reviews = {};
+let activeReviewBook = null;
+let saveTimer = null;
+
+function loadReviews() {
+  try {
+    const raw = localStorage.getItem(REVIEWS_KEY);
+    if (raw) reviews = JSON.parse(raw);
+  } catch (e) {}
+}
+
+function saveReviews() {
+  try {
+    localStorage.setItem(REVIEWS_KEY, JSON.stringify(reviews));
+  } catch (e) {}
+}
+
+function getReview(n) {
+  return (reviews[n] || '').trim();
+}
+
+function setReview(n, text) {
+  const trimmed = text.trim();
+  if (trimmed) reviews[n] = text;
+  else delete reviews[n];
+  saveReviews();
+}
+
+function openReviewModal(book) {
+  activeReviewBook = book;
+  const overlay   = document.getElementById('review-overlay');
+  const numEl     = document.getElementById('review-num');
+  const titleEl   = document.getElementById('review-modal-title');
+  const authorEl  = document.getElementById('review-author');
+  const textarea  = document.getElementById('review-textarea');
+  const statusEl  = document.getElementById('review-status');
+
+  numEl.textContent    = '№ ' + book.n;
+  titleEl.textContent  = book.t;
+  authorEl.textContent = book.a + ' · ' + book.y;
+  textarea.value       = getReview(book.n);
+  statusEl.textContent = '';
+
+  overlay.hidden = false;
+  document.body.style.overflow = 'hidden';
+  setTimeout(() => textarea.focus(), 50);
+}
+
+function closeReviewModal() {
+  const overlay = document.getElementById('review-overlay');
+  overlay.hidden = true;
+  document.body.style.overflow = '';
+  if (activeReviewBook) {
+    // refresh just this card so the "has review" indicator updates
+    const card = document.querySelector(`.book-card[data-n="${activeReviewBook.n}"]`);
+    if (card) {
+      const btn = card.querySelector('.review-trigger');
+      const has = !!getReview(activeReviewBook.n);
+      btn.classList.toggle('has-review', has);
+      btn.querySelector('span').textContent = has ? 'Моя рецензия' : 'Написать рецензию';
+    }
+  }
+  activeReviewBook = null;
+}
+
+function saveActiveReview(showStatus) {
+  if (!activeReviewBook) return;
+  const textarea = document.getElementById('review-textarea');
+  setReview(activeReviewBook.n, textarea.value);
+  if (showStatus) {
+    const statusEl = document.getElementById('review-status');
+    statusEl.textContent = 'Сохранено';
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => { statusEl.textContent = ''; }, 1500);
+  }
+}
+
+function initReviewModal() {
+  const overlay     = document.getElementById('review-overlay');
+  const closeBtn    = document.getElementById('review-close-btn');
+  const cancelBtn   = document.getElementById('review-cancel-btn');
+  const saveBtn     = document.getElementById('review-save-btn');
+  const textarea    = document.getElementById('review-textarea');
+
+  const doClose = () => { saveActiveReview(false); closeReviewModal(); };
+
+  closeBtn.addEventListener('click', doClose);
+  cancelBtn.addEventListener('click', doClose);
+  saveBtn.addEventListener('click', () => saveActiveReview(true));
+
+  overlay.addEventListener('click', (e) => {
+    if (e.target === overlay) doClose();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (overlay.hidden) return;
+    if (e.key === 'Escape') doClose();
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) saveActiveReview(true);
+  });
+
+  // autosave while typing (debounced), no status flash to avoid noise
+  textarea.addEventListener('input', () => {
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(() => saveActiveReview(false), 600);
   });
 }
 
 // ── Init ──────────────────────────────────────────────────────────
 loadProgress();
+loadReviews();
+initReviewModal();
 updateStats();
 render();
