@@ -62,9 +62,9 @@ body {
 .header-title h1 {
   font-family: var(--font-serif);
   font-size: clamp(1.5rem, 3vw, 2.25rem);
-  font-weight: 400;
+  font-weight: 700;
   line-height: 1.15;
-  color: var(--paper);
+  color: #ffffff;
 }
 
 .header-sub {
@@ -484,6 +484,10 @@ body {
   padding: 1.25rem;
   z-index: 1000;
   animation: overlay-fade 0.15s ease;
+}
+
+.review-overlay[hidden] {
+  display: none;
 }
 
 @keyframes overlay-fade {
